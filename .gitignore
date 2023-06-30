@@ -1,0 +1,9 @@
+logs/
+tensorboard/
+gbm-vv/
+snapshots/
+tags
+*.swo
+*.swp
+*.log
+**/__pycache__/

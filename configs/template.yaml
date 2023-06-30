@@ -1,0 +1,161 @@
+experiments:
+  root: '/data/afatehi/pet/experiments/'
+  models: ['unet_3d',
+           'unet_3d_ss']
+  model_sizes: [
+                 [tiny, 16, 32, 64],
+                 [small, 32, 64, 128],
+                 [medium, 64, 128, 256],
+                 [big, 64, 128, 256, 512],
+                 [huge, 128, 256, 512, 1024],
+               ]
+  optimizers: [[adam, lr, 0.0001]]
+  losses: [CrossEntropy]
+  metrics: [
+            ['Loss', True],
+            ['Accuracy', False],
+            ['Pervalence', False],
+            ['BalancedAccuracy', False],
+            ['TruePositiveRate', True],
+            ['TrueNegativeRate', False],
+            ['FalsePositiveRate', False],
+            ['FalseNegativeRate', False],
+            ['PositivePredictiveValue', True],
+            ['NegativePredictiveValue', False],
+            ['FalseDiscoveryRate', False],
+            ['FalseOmissionRate', False],
+            ['PositiveLikelihoodRatio', False],
+            ['NegativeLikelihoodRatio', False],
+            ['Dice', True],
+            ['JaccardIndex', True]
+           ]
+  train_same_sample_size: True
+  train_same_batch_size: True
+  train_same_stride: False
+
+  log_levels: [INFO, DEBUG]
+
+  scale_batch_size_for_dp: True
+  scale_lerning_rate_for_batch_size: True
+
+  # I am expecting train_ds, valid_ds, test_ds and unlabeled_ds directories
+  default_data_path: '/data/afatehi/pet/data/'
+  default_ds_workers: 4
+  default_aug_workers: 32
+  default_kernel_size: [3, 3, 3]
+  default_padding: 'same'
+  default_loss_weights: [1.0, 10.0]
+  default_report_freq: 20
+  default_epochs: 10
+  default_batch_size: 8
+
+trainer:
+  model:
+    name: unet_3d
+    feature_maps: [64, 128, 256, 512]
+    channels: [0, 1, 2]
+    encoder_kernel: [3, 3, 3]
+    encoder_padding: 'same'
+    decoder_kernel: [3, 3, 3]
+    decoder_padding: 'same'
+
+  epochs: 10
+
+  optim:
+    name: adam
+    lr : 0.0001
+
+  loss: CrossEntropy
+  loss_weights: [1.0, 25.0]
+  report_freq: 50
+
+  metrics: [
+            'Loss',
+            'TruePositiveRate',
+            'PositivePredictiveValue',
+            'Dice',
+            'JaccardIndex',
+           ]
+
+  metrics_class_ids: [1]
+
+  snapshot_path: ./snapshots/
+  result_path: ./results-train/
+
+  dataset:
+    positive_path: ./data/processed/positive/
+    negative_path: ./data/processed/negative/
+    batch_size: 24
+    pin_memory: True
+    shuffle: True
+    workers: 4
+
+  visualization:
+    enabled: True
+    # The chance for a batch to create visualization
+    chance: 0.30
+    path: ./visuals/
+    gif: True
+    tif: True
+    mesh: False
+
+  profiling:
+    enabled: False
+    path: ./profiling/
+    save:
+      tensorboard: True
+      text: False
+      print: False
+    profile_memory: True
+    record_shapes: True
+    with_flops: True
+    with_stack: False
+    scheduler:
+      wait: 10
+      warmup: 10
+      active: 4
+      repeat: 4
+
+  tensorboard:
+    enabled: True
+    label_seen: True
+    path: ./tensorboard/
+
+  sqlite: True
+
+  device: cuda
+  mixed_precision: True
+  cudnn_benchmark: False
+
+  dp: True
+
+inference:
+  model:
+    name: unet_3d
+    feature_maps: [64, 128, 256, 512]
+    channels: [0, 1, 2]
+
+  number_class: 2
+  snapshot_path: ''
+  device: cuda
+
+  result_dir: ''
+
+  inference_ds:
+    path: ''
+    batch_size: 8
+    sample_dimension: [12, 256, 256]
+    pixel_stride: [1, 64, 64]
+    pin_memory: True
+    channel_map: [0, 1, 2]
+    scale_factor: 6
+    workers: 8
+
+logging:
+  log_level: INFO
+  log_file: logs/train.log
+  log_std: True
+  log_summary: False
+
+# All other pathes are relative to root_path
+root_path: './'
