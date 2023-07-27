@@ -155,8 +155,8 @@ def parse(_description: str):
 # some if needed, for example:
 # tqmd and log_std are mutually exclusive
 def sanity_check(_configs: dict) -> dict:
-    assert not _configs['trainer']['dataset']['path'] is None, \
-           "Please provide path to the training dataset"
+    # assert not _configs['trainer']['dataset']['path'] is None, \
+    #        "Please provide path to the training dataset"
 
     if _configs['trainer']['visualization']['enabled']:
         assert not _configs['trainer']['visualization']['path'] is None, \

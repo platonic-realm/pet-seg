@@ -56,7 +56,7 @@ class Visualizer(ABC):
     def _tensor_2D_to_tif(self,
                           _input,
                           _file_path: str,
-                          _imagej: bool = True
+                          _imagej: bool = False
                           ):
 
         if not self.generate_tif:
@@ -69,13 +69,13 @@ class Visualizer(ABC):
                          _input,
                          shape=_input.shape,
                          imagej=_imagej,
-                         metadata={'axes': 'YX'}
+                         metadata={'axes': 'XY'}
                          )
 
     def _tensor_3D_to_tif(self,
                           _input,
                           _file_path: str,
-                          _imagej: bool = True
+                          _imagej: bool = False
                           ):
 
         if not self.generate_tif:
@@ -94,7 +94,7 @@ class Visualizer(ABC):
                          _input,
                          shape=_input.shape,
                          imagej=_imagej,
-                         metadata={'axes': 'ZYX', 'fps': 10.0}
+                         metadata={'axes': 'XYZ', 'fps': 10.0}
                          )
 
     def _tensor_3D_to_gif(self,
@@ -109,8 +109,8 @@ class Visualizer(ABC):
 
         image = _input.astype(np.uint8)
         with imageio.get_writer(_file_path, mode='I') as writer:
-            for index in range(_input.shape[0]):
-                writer.append_data(image[index])
+            for index in range(_input.shape[2]):
+                writer.append_data(image[:, :, index])
 
     def _tensor_3D_to_mesh(self,
                            _input,

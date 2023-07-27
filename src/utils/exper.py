@@ -20,6 +20,7 @@ from src.utils.args import read_configurations, summerize
 from src.train.trainer_unet3d import Unet3DTrainer
 from src.train.trainer_unet3d_me import Unet3DMETrainer
 from src.infer.inference import Inference
+from src.utils.misc import configure_logger
 
 
 def experiment_exists(_root_path, _name) -> bool:
@@ -147,6 +148,7 @@ def train_experiment(_name: str,
         raise FileNotFoundError(message)
     configs_path = os.path.join(_root_path, _name, 'configs.yaml')
     configs = read_configurations(configs_path)
+    configure_logger(configs)
 
     if configs['logging']['log_summary']:
         summerize(configs)
@@ -242,16 +244,16 @@ def create_new_experiment(_name: str,
         configs['trainer']['report_freq'] = \
             configs['experiments']['default_report_freq']
 
-        configs['trainer']['dataset']['positive_path'] = \
-            f"{configs['experiments']['default_data_path']}processed/positive/"
-
-        configs['trainer']['dataset']['negative_path'] = \
-            f"{configs['experiments']['default_data_path']}processed/negative/"
-
-        configs['trainer']['dataset']['batch_size'] = \
+        configs['trainer']['train_ds']['batch_size'] = \
             configs['experiments']['default_batch_size']
 
-        configs['trainer']['dataset']['workers'] = \
+        configs['trainer']['train_ds']['workers'] = \
+            configs['experiments']['default_ds_workers']
+
+        configs['trainer']['valid_ds']['batch_size'] = \
+            configs['experiments']['default_batch_size']
+
+        configs['trainer']['valid_ds']['workers'] = \
             configs['experiments']['default_ds_workers']
 
         configs['inference']['inference_ds']['path'] = \

@@ -17,10 +17,10 @@ import nibabel as nib
 import multiprocessing as mp
 
 src_path = '/data/afatehi/pet/data/raw/FDG-PET-CT-Lesions/'
-dst_path = '/data/afatehi/pet/data/processed/'
-sample_dimension = [400, 400, 16]
-# sample_dimension = [200, 200, 64]
-stride = [50, 50, 4]
+dst_path = '/data/afatehi/pet/data/200_64/'
+# sample_dimension = [400, 400, 16]
+sample_dimension = [200, 200, 64]
+stride = [50, 50, 8]
 allowed_empty = 100
 max_process = 32
 
@@ -124,10 +124,10 @@ def process_sample(_sample_directory: str,
         file_name = f"{uuid.uuid4()}"
         file_path = os.path.join(dst_dir, file_name)
 
-        assert patch.shape == (3, 400, 400, 16), \
+        assert patch.shape == (3, 200, 200, 64), \
             f"Shape mismatch, shape: {patch.shape}"
 
-        np.save(f"{file_path}.data.npy", patch)
+        np.savez_compressed(f"{file_path}.data.npz", patch)
 
         print(f"Source: {_sample_directory}\n" +
               f"Source shape: {sample.shape}\n" +

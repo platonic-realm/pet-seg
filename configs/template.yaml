@@ -82,10 +82,22 @@ trainer:
   snapshot_path: ./snapshots/
   result_path: ./results-train/
 
-  dataset:
-    positive_path: ./data/processed/positive/
-    negative_path: ./data/processed/negative/
+  train_ds:
+    path: ./data/ds_train/
     batch_size: 24
+    patch_dimension: [100, 100, 100] # X, Y, Z
+    stride: [50, 50, 16]
+    positive_per_patch: 1
+    pin_memory: True
+    shuffle: True
+    workers: 4
+
+  valid_ds:
+    path: ./data/ds_valid/
+    batch_size: 24
+    patch_dimension: [100, 100, 100] # X, Y, Z
+    stride: [50, 50, 16]
+    positive_per_patch: 1
     pin_memory: True
     shuffle: True
     workers: 4

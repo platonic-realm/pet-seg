@@ -18,7 +18,7 @@ import threading
 import torch
 from torch import nn
 from torch.utils.tensorboard import SummaryWriter
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 from torch.profiler import ProfilerActivity
 
 # Local Imports
@@ -143,11 +143,6 @@ class Trainer(ABC):
 
         self._log_tensorboard_metrics(_step, _tag, _metrics)
 
-        if self.tensorboard_ls:
-            self._log_tensorboard_metrics(self.seen_labels,
-                                          f"{_tag}_ls",
-                                          _metrics)
-
     def _log_tensorboard_metrics(self,
                                  _n_iter: int,
                                  _mode: str,
@@ -269,59 +264,58 @@ class Trainer(ABC):
 
     def _prepare_data(self) -> None:
 
-        positive_ds_dir: str = os.path.join(self.root_path,
-                                            self.configs['dataset']
-                                            ['positive_path'])
-        negative_ds_dir: str = os.path.join(self.root_path,
-                                            self.configs['dataset']
-                                            ['negative_path'])
+        train_dataset_path = self.configs['train_ds']['path']
+        valid_dataset_path = self.configs['valid_ds']['path']
 
-        self.batch_size = self.configs['dataset']['batch_size']
+        self.train_batch_size = self.configs['train_ds']['batch_size']
+        self.valid_batch_size = self.configs['valid_ds']['batch_size']
 
-        positive_dataset = FDGDataset(
-                _source_directory=positive_ds_dir)
+        positive_train_dataset = FDGDataset(_source_directory=train_dataset_path,
+                                            _patch_dimension=self.configs['train_ds']['patch_dimension'],
+                                            _stride=self.configs['train_ds']['stride'],
+                                            _positive=True)
 
-        negative_dataset = FDGDataset(
-                _source_directory=negative_ds_dir)
+        negative_train_dataset = FDGDataset(_source_directory=train_dataset_path,
+                                            _patch_dimension=self.configs['train_ds']['patch_dimension'],
+                                            _stride=self.configs['train_ds']['stride'],
+                                            _positive=False)
 
-        positive_batch_size = int(self.batch_size * 1/4)
-        negative_batch_size = self.batch_size - positive_batch_size
+        positive_valid_dataset = FDGDataset(_source_directory=valid_dataset_path,
+                                            _patch_dimension=self.configs['valid_ds']['patch_dimension'],
+                                            _stride=self.configs['valid_ds']['stride'],
+                                            _positive=True)
 
-        train_ratio = 0.95
+        negative_valid_dataset = FDGDataset(_source_directory=valid_dataset_path,
+                                            _patch_dimension=self.configs['valid_ds']['patch_dimension'],
+                                            _stride=self.configs['valid_ds']['stride'],
+                                            _positive=False)
 
-        positive_train_size = int(train_ratio * len(positive_dataset))
-        positive_valid_size = len(positive_dataset) - positive_train_size
-
-        positive_train_dataset, positive_valid_dataset = \
-            random_split(positive_dataset,
-                         [positive_train_size, positive_valid_size])
-
-        negative_train_size = int(train_ratio * len(negative_dataset))
-        negative_valid_size = len(negative_dataset) - negative_train_size
-
-        negative_train_dataset, negative_valid_dataset = \
-            random_split(negative_dataset,
-                         [negative_train_size, negative_valid_size])
+        positive_train_batch_size = self.configs['train_ds']['positive_per_patch']
+        negative_train_batch_size = self.train_batch_size - self.configs['train_ds']['positive_per_patch']
+        positive_valid_batch_size = self.configs['valid_ds']['positive_per_patch']
+        negative_valid_batch_size = self.valid_batch_size - self.configs['valid_ds']['positive_per_patch']
 
         self.train_positive_loader = DataLoader(positive_train_dataset,
-                                                batch_size=positive_batch_size,
-                                                num_workers=self.configs
-                                                ['dataset']['workers'])
-
-        self.valid_positive_loader = DataLoader(positive_valid_dataset,
-                                                batch_size=positive_batch_size,
-                                                num_workers=self.configs
-                                                ['dataset']['workers'])
+                                                batch_size=positive_train_batch_size,
+                                                num_workers=self.configs['train_ds']['workers'],
+                                                shuffle=self.configs['train_ds']['shuffle'],
+                                                drop_last=True)
 
         self.train_negative_loader = DataLoader(negative_train_dataset,
-                                                batch_size=negative_batch_size,
-                                                num_workers=self.configs
-                                                ['dataset']['workers'])
+                                                batch_size=negative_train_batch_size,
+                                                num_workers=self.configs['train_ds']['workers'],
+                                                shuffle=self.configs['train_ds']['shuffle'],
+                                                drop_last=True)
+
+        self.valid_positive_loader = DataLoader(positive_valid_dataset,
+                                                batch_size=positive_valid_batch_size,
+                                                num_workers=self.configs['valid_ds']['workers'],
+                                                drop_last=True)
 
         self.valid_negative_loader = DataLoader(negative_valid_dataset,
-                                                batch_size=negative_batch_size,
-                                                num_workers=self.configs
-                                                ['dataset']['workers'])
+                                                batch_size=negative_valid_batch_size,
+                                                num_workers=self.configs['valid_ds']['workers'],
+                                                drop_last=True)
 
     def _prepare_optimizer(self) -> None:
         optimizer_name: str = self.configs['optim']['name']

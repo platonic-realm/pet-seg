@@ -16,5 +16,5 @@ input = data[0, :, :, :]
 file_path = './result.gif'
 
 with imageio.get_writer(file_path, mode='I') as writer:
-    for index in range(input.shape[0]):
+    for index in range(input.shape[3]):
         writer.append_data(image[index])

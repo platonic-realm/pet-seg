@@ -12,7 +12,7 @@ import os
 from pudb import set_trace
 
 # Local Imports
-from src.utils.misc import configure_logger, basic_logger
+from src.utils.misc import basic_logger
 from src.utils import args
 from src.utils import exper
 
@@ -43,7 +43,6 @@ if __name__ == '__main__':
                                  _root_path=root)
 
     if args.action == 'train':
-        configure_logger(configs)
         root = configs['experiments']['root']
         name = args.name
         exper.train_experiment(_name=name,
@@ -56,7 +55,6 @@ if __name__ == '__main__':
         exper.delete_experiment(_name=name,
                                 _root_path=root)
     if args.action == 'infer':
-        configure_logger(configs)
         root = configs['experiments']['root']
         name = args.name
         snapshot = args.snapshot

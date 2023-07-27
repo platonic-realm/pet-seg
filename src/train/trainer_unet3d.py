@@ -126,7 +126,14 @@ class Unet3DTrainer(Trainer):
         for index, positive_samples in enumerate(self.train_positive_loader):
 
             negative_samples = next(train_negative_iterator)
+
             batch = torch.cat((positive_samples, negative_samples), dim=0)
+            # batch = self._standardize_batch(batch)
+
+            # Mix positive and negative samples
+            random_indices = torch.randperm(self.train_batch_size)
+            batch = batch[random_indices]
+
             results = self._training_step(_epoch,
                                           index,
                                           batch)
@@ -149,7 +156,7 @@ class Unet3DTrainer(Trainer):
                              _epoch+1,
                              self.epochs,
                              index+1,
-                             len(self.valid_positive_loader),
+                             len(self.train_positive_loader),
                              self.step,
                              metrics)
 
@@ -164,6 +171,11 @@ class Unet3DTrainer(Trainer):
                     valid_batch = torch.cat((valid_positive_samples,
                                              valid_negative_samples),
                                             dim=0)
+                    # valid_batch = self._standardize_batch(valid_batch)
+
+                    # Mix positive and negative samples
+                    valid_random_indices = torch.randperm(self.valid_batch_size)
+                    valid_batch = valid_batch[valid_random_indices]
 
                     results = self._validate_step(_epoch_id=_epoch,
                                                   _batch_id=valid_index,
@@ -188,3 +200,19 @@ class Unet3DTrainer(Trainer):
 
         if self.pytorch_profiling:
             self.prof.stop()
+
+    @staticmethod
+    def _standardize_batch(_batch):
+        ct_channel = _batch[:, 0, :, :, :]
+        pet_channel = _batch[:, 1, :, :, :]
+
+        ct_mean = torch.mean(ct_channel)
+
+        ct_std = torch.std(ct_channel)
+
+        ct_channel = (ct_channel - ct_mean) / ct_std
+
+        return torch.stack([ct_channel,
+                            pet_channel,
+                            _batch[:, 2, :, :, :]],
+                           dim=1)
